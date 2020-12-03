@@ -1,0 +1,48 @@
+import { useQuery, useReactiveVar } from "@apollo/client";
+import { Paper, TextField, makeStyles, createStyles } from "@material-ui/core";
+import React from "react";
+import { DeckErrorVar, DeckLoadingVar, DeckUrlVar, DeckVar } from "./cache";
+import { SCRYFALLIFY_URL } from "./gql/queries";
+
+const useStyles = makeStyles((theme) =>
+  createStyles({
+    root: {
+      "& > *": {
+        margin: theme.spacing(1),
+        width: "50ch",
+      },
+    },
+  })
+);
+
+export function DeckInput() {
+  const classes = useStyles();
+
+  const url = useReactiveVar(DeckUrlVar);
+  const skip = url === "";
+  const { loading, error, data } = useQuery(SCRYFALLIFY_URL, { skip });
+
+  DeckLoadingVar(loading);
+  DeckErrorVar(error);
+
+  if (data) {
+    DeckVar(
+      data.scryfallifyURL.map((c: any, id: number) => ({
+        ...c,
+        id,
+      }))
+    );
+  } else {
+    DeckVar([]);
+  }
+
+  return (
+    <Paper className={classes.root}>
+      <TextField
+        id="standard-basic"
+        label="Decklist URL"
+        onChange={(e: any) => UPDATE_URL(e.target.value)}
+      />
+    </Paper>
+  );
+}
